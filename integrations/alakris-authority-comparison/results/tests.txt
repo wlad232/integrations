@@ -20,6 +20,7 @@ test_unreachable_no_effect (test_runner.Checks.test_unreachable_no_effect) ... o
 test_valid_control_and_duplicate (test_runner.Checks.test_valid_control_and_duplicate) ... ok
 test_veto_no_effect (test_runner.Checks.test_veto_no_effect) ... ok
 test_duplicate_cases_rejected (test_runner.CompletenessChecks.test_duplicate_cases_rejected) ... ok
+test_each_missing_contract_field_gets_explicit_state (test_runner.CompletenessChecks.test_each_missing_contract_field_gets_explicit_state) ... ok
 test_four_cases_required (test_runner.CompletenessChecks.test_four_cases_required) ... ok
 test_missing_proofable_row_is_missing_not_na (test_runner.CompletenessChecks.test_missing_proofable_row_is_missing_not_na) ... ok
 test_reference_rejects_empty_username_credentials (test_runner.ReferenceChecks.test_reference_rejects_empty_username_credentials) ... ok
@@ -27,6 +28,6 @@ test_reference_requires_http_uri (test_runner.ReferenceChecks.test_reference_req
 test_released_trace_reference_shape (test_runner.ReferenceChecks.test_released_trace_reference_shape) ... ok
 
 ----------------------------------------------------------------------
-Ran 27 tests in 0.385s
+Ran 28 tests in 1.473s
 
 OK

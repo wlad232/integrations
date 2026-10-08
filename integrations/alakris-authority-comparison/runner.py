@@ -6,6 +6,7 @@ from pathlib import Path
 
 STATES = {'measured', 'not_applicable', 'not_emitted', 'not_measured'}
 CASES = ('binding_veto', 'revoked_stale', 'unreachable', 'post_dispatch_revoke')
+REQUIRED_FIELDS = tuple(json.loads(Path(__file__).with_name('comparison-contract.json').read_text())['required_fields'])
 
 def field(state, value=None, reason=None):
     if state not in STATES:
@@ -65,7 +66,7 @@ def validate_report(report):
             raise ValueError('unknown case')
         for key, item in case['fields'].items():
             field(item['state'], item['value'], item.get('reason'))
-        for key in ('action_digest', 'target_identity', 'original_deadline', 'fallback_scope', 'independent_effect_witness', 'retry_count', 'duplicate_count'):
+        for key in REQUIRED_FIELDS:
             metric = key in ('independent_effect_witness', 'retry_count', 'duplicate_count')
             case['fields'].setdefault(key, field('not_measured' if metric else 'not_emitted', reason='appraisal not performed' if metric else 'not exposed by this public adapter input'))
         if case.get('independent_live_reproduction') and case['basis'] != 'independent_run':
@@ -88,7 +89,8 @@ def proofable(base):
                     'unreachable': [], 'post_dispatch_revoke': ['post_dispatch_revoke']}
     for case in CASES:
         relevant = [r for r in trace if r['case_id'] in source_cases[case]]
-        missing = lambda why: field('not_emitted', reason=why)
+        def missing(why):
+            return field('not_emitted', reason=why)
         fields = {
             'authority': field('measured', [r.get('delegation_qHash') for r in relevant]) if relevant else (field('not_applicable', reason='current authority evaluated locally') if case == 'unreachable' else field('not_emitted')),
             'decision': field('measured', [r['observed'] for r in relevant]) if relevant else (field('not_applicable', reason='no remote authority dependency on this path') if case == 'unreachable' else field('not_emitted')),
@@ -127,14 +129,15 @@ def mintid(base, name):
         if not isinstance(expected, str) or len(expected) != 64 or any(c not in '0123456789abcdef' for c in expected):
             raise ValueError('invalid publisher digest')
         checks.append(hash_check(base, filename, expected))
-    trace = rows(relative_file(base, name + '.jsonl'))
+    rows(relative_file(base, name + '.jsonl'))
     basis = 'author_record'
     paths = manifest.get('paths', [])
     revocation_paths = [p for p in paths if p['path'] != 'unreachable']
     outage_paths = [p for p in paths if p['path'] == 'unreachable']
     cases = []
     for case in CASES:
-        na = lambda why: field('not_applicable', reason=why)
+        def na(why):
+            return field('not_applicable', reason=why)
         fields = {'dispatch': na('MintID has no executor'), 'committed_effect': na('relying-party boundary'),
                   'task_outcome': na('relying-party task outcome is outside MintID'),
                   'receipt': field('not_emitted'), 'receipt_signature_verification': field('not_measured'),
